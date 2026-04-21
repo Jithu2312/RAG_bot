@@ -1,0 +1,31 @@
+# 🔹 Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 🔹 Virtual env (uv creates this)
+.venv/
+
+# 🔹 Environment variables
+.env
+
+# 🔹 Config secrets
+config.py
+
+# 🔹 OS files
+.DS_Store
+Thumbs.db
+
+# 🔹 Logs
+*.log
+
+# 🔹 Data files (uploaded PDFs)
+data/
+
+# 🔹 Vector DB (we’ll add later)
+db/
+
+# 🔹 IDE
+.vscode/
+.idea/
