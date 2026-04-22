@@ -1,23 +1,48 @@
-import google.generativeai as genai
-from config import GEMINI_API_KEY
+from google import genai
+import os
+from config import GEMINI_API_KEY 
 
-genai.configure(api_key=GEMINI_API_KEY)
-
-model = genai.GenerativeModel("gemini-2.5-flash")
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 
-def generate_answer(query: str, context_chunks):
-    context = "\n\n".join(context_chunks)
+def generate_answer(question, contexts):
+
+    # Prepare context text
+    context_text = ""
+
+    for i, chunk in enumerate(contexts):
+        context_text += f"""
+        [Chunk {i+1}]
+        File: {chunk['file_path']}
+        Language: {chunk['language']}
+
+        {chunk['text']}
+        """
 
     prompt = f"""
-Answer ONLY from the context below.
+You are a senior software engineer helping understand a codebase.
 
-Context:
-{context}
+Answer the question using ONLY the provided context.
+
+If answer is not found, say:
+"I could not find this in the codebase."
 
 Question:
-{query}
+{question}
+
+Context:
+{context_text}
+
+Instructions:
+- Mention file paths
+- Be precise
+- Do not hallucinate
+- Explain clearly
 """
 
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt
+    )
+
     return response.text

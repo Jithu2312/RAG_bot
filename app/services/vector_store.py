@@ -1,32 +1,43 @@
 import faiss
 import numpy as np
+from sentence_transformers import SentenceTransformer
 
-index = None
-stored_chunks = []
+# Load model once
+model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
-
-def create_index(embeddings, chunks):
-    """
-    Store embeddings in FAISS
-    """
-    global index, stored_chunks
-
-    dim = embeddings.shape[1]
-
-    index = faiss.IndexFlatL2(dim)
-    index.add(np.array(embeddings))
-
-    stored_chunks = chunks
+faiss_index = None
+metadata_store = []
 
 
-def search(query_embedding, k=3):
-    """
-    Retrieve top-k similar chunks
-    """
-    global index, stored_chunks
+def build_faiss_index(chunks):
+    global faiss_index, metadata_store
 
-    distances, indices = index.search(query_embedding, k)
+    texts = [chunk["text"] for chunk in chunks]
 
-    results = [stored_chunks[i] for i in indices[0]]
+    embeddings = model.encode(texts)
+    embeddings = np.array(embeddings).astype("float32")
+
+    dimension = embeddings.shape[1]
+
+    faiss_index = faiss.IndexFlatL2(dimension)
+    faiss_index.add(embeddings)
+
+    metadata_store = chunks
+
+    return len(chunks)
+
+
+def search_faiss(query, top_k=5):
+    global faiss_index, metadata_store
+
+    query_embedding = model.encode([query])
+    query_embedding = np.array(query_embedding).astype("float32")
+
+    distances, indices = faiss_index.search(query_embedding, top_k)
+
+    results = []
+    for idx in indices[0]:
+        if idx < len(metadata_store):
+            results.append(metadata_store[idx])
 
     return results

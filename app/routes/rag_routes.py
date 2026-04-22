@@ -1,56 +1,65 @@
-from fastapi import APIRouter, UploadFile, File
-import os
+from fastapi import APIRouter
 
-from app.services.document_loader import load_pdf
-from app.services.chunking import chunk_text
-from app.services.embedding import embed_texts
+from app.services.vector_store import build_faiss_index, search_faiss
+from app.services.code_chunker import chunk_code
+from app.services.repo_ingestion import clone_repo, read_code_files
+from app.services.bm25_store import build_bm25_index, search_bm25
+from pydantic import BaseModel
 from app.services.llm_service import generate_answer
-from app.services.vector_store import create_index
-from app.services.embedding import embed_query
-from app.services.vector_store import search
-from app.models.schemas import QueryRequest, QueryResponse
+
+class RepoRequest(BaseModel):
+    repo_url: str
+ 
 router = APIRouter()
+@router.post("/ingest-repo")
+def ingest_repo(request: RepoRequest):
 
-UPLOAD_DIR = "data"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+    repo_path = clone_repo(request.repo_url)
+    files = read_code_files(repo_path)
+    chunks = chunk_code(files)
 
-@router.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    # Build FAISS
+    num_indexed = build_faiss_index(chunks)
 
-    with open(file_path, "wb") as f:
-        content = await file.read()
-        f.write(content)
-
-    # Step 1: Extract
-    text = load_pdf(file_path)
-
-    # Step 2: Chunk
-    chunks = chunk_text(text)
-
-    # Step 3: Embed
-    embeddings = embed_texts(chunks)
-
-    # Step 4: Store
-    create_index(embeddings, chunks)
+    # Build BM25
+    build_bm25_index(chunks)
 
     return {
-        "filename": file.filename,
+        "message": "Repo indexed successfully",
+        "num_files": len(files),
         "num_chunks": len(chunks),
-        "message": "Embeddings created and stored"
+        "indexed": num_indexed
     }
 
+class RepoQueryRequest(BaseModel):
+    question: str
 
-@router.post("/query", response_model=QueryResponse)
-def query_rag(request: QueryRequest):
+@router.post("/query-repo")
+def query_repo(request: RepoQueryRequest):
 
-    # Step 1: Embed query
-    query_embedding = embed_query(request.query)
+    # Hybrid retrieval
+    faiss_results = search_faiss(request.question, top_k=5)
+    bm25_results = search_bm25(request.question, top_k=5)
 
-    # Step 2: Retrieve chunks
-    retrieved_chunks = search(query_embedding)
+    combined = faiss_results + bm25_results
 
-    # Step 3: Generate answer using LLM
-    answer = generate_answer(request.query, retrieved_chunks)
+    # Deduplicate
+    seen = set()
+    unique_results = []
 
-    return QueryResponse(answer=answer) 
+    for item in combined:
+        key = item["text"]
+        if key not in seen:
+            seen.add(key)
+            unique_results.append(item)
+
+    top_chunks = unique_results[:5]
+
+    #  LLM generation
+    answer = generate_answer(request.question, top_chunks)
+
+    return {
+        "question": request.question,
+        "answer": answer,
+        "sources": top_chunks
+    }
