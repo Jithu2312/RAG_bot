@@ -16,6 +16,7 @@ def build_bm25_index(chunks):
     tokenized_docs = [tokenize(chunk["text"]) for chunk in chunks]
 
     bm25 = BM25Okapi(tokenized_docs)
+    print(f"BM25 index built with {len(chunks)} documents.")
 
 
 def search_bm25(query, top_k=5):
