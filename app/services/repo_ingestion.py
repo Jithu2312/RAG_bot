@@ -11,7 +11,6 @@ def clone_repo(repo_url: str) -> str:
     """
     Clone GitHub repo locally
     """
-
     repo_name = repo_url.split("/")[-1].replace(".git", "")
     repo_path = os.path.join(BASE_DIR, repo_name)
 

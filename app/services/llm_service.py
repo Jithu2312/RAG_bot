@@ -5,39 +5,38 @@ from config import GEMINI_API_KEY
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 
-def generate_answer(question, contexts):
+def generate_answer(question, contexts, history=None):
 
-    # Prepare context text
+    history_text = ""
+
+    if history:
+        for msg in history:
+            role = msg["role"]
+            content = msg["content"]
+            history_text += f"{role.upper()}: {content}\n"
+
     context_text = ""
 
-    for i, chunk in enumerate(contexts):
+    for chunk in contexts:
         context_text += f"""
-        [Chunk {i+1}]
-        File: {chunk['file_path']}
-        Language: {chunk['language']}
-
-        {chunk['text']}
-        """
+File: {chunk.get('file_path')}
+Code:
+{chunk.get('text')}
+"""
 
     prompt = f"""
-You are a senior software engineer helping understand a codebase.
+You are a senior software engineer.
 
-Answer the question using ONLY the provided context.
+Conversation History:
+{history_text}
 
-If answer is not found, say:
-"I could not find this in the codebase."
+Answer the question using context.
 
 Question:
 {question}
 
 Context:
 {context_text}
-
-Instructions:
-- Mention file paths
-- Be precise
-- Do not hallucinate
-- Explain clearly
 """
 
     response = client.models.generate_content(
