@@ -14,10 +14,44 @@ dependencies = [
     "uvicorn>=0.44.0",
 ]
 
+# -------------------------
+# BLACK (formatter)
+# -------------------------
 [tool.black]
-target-version = ["py311"]
 line-length = 120
+target-version = ["py311"]
 
+# -------------------------
+# ISORT (import sorting)
+# -------------------------
+[tool.isort]
+profile = "black"
+line_length = 120
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+# -------------------------
+# FLAKE8 (linting)
+# -------------------------
+[tool.flake8]
+max-line-length = 120
+extend-ignore = [
+    "E203",  # conflicts with black
+    "W503"   # line break before binary operator (black style)
+]
+exclude = [
+    ".venv",
+    "__pycache__",
+    "repos",
+    "data"
+]
+
+# -------------------------
+# PACKAGE DISCOVERY
+# -------------------------
 [tool.setuptools.packages.find]
 include = ["app*"]
 exclude = ["repos*", "data*", "tests*"]
