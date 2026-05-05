@@ -1,13 +1,12 @@
-name: RepoLens CI (Lightweight)
+name: CI
 
 on:
   push:
-    branches: ["dev"]
+    branches: [dev]
   pull_request:
-    branches: ["dev"]
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,24 +18,14 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install basic tools
-        run: |
-          pip install flake8
+      - name: Install lightweight dependencies
+        run: pip install -r requirements-ci.txt
 
-      # -----------------------------
-      # ✅ SYNTAX CHECK
-      # -----------------------------
       - name: Syntax check
         run: python -m py_compile $(git ls-files '*.py')
 
-      # -----------------------------
-      # ✅ LINT CHECK
-      # -----------------------------
       - name: Lint check
         run: flake8 app --max-line-length=120
 
-      # -----------------------------
-      # ✅ IMPORT CHECK
-      # -----------------------------
-      - name: Import check
+      - name: Import check (no heavy load)
         run: python -c "import app.main"
