@@ -1,31 +1,38 @@
-name: CI
+name: CI Pipeline
 
 on:
   push:
-    branches: [dev]
+    branches: [ "dev" ]
   pull_request:
+    branches: [ "dev" ]
 
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
 
-      - name: Install lightweight dependencies
-        run: pip install -r requirements-ci.txt
+    - name: Install uv
+      run: pip install uv
 
-      - name: Syntax check
-        run: python -m py_compile $(git ls-files '*.py')
+    - name: Install dependencies
+      run: uv pip install .
 
-      - name: Lint check
-        run: flake8 app --max-line-length=120
+    - name: Install lint tools
+      run: uv pip install black isort flake8
 
-      - name: Import check (no heavy load)
-        run: python -c "import app.main"
+    - name: Run Black
+      run: uv run black --check .
+
+    - name: Run isort
+      run: uv run isort --check-only .
+
+    - name: Run Flake8
+      run: uv run flake8 .
