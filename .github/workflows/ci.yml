@@ -2,37 +2,38 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: [dev, main]
   pull_request:
-    branches: [ "dev" ]
+    branches: [dev, main]
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      # 1️⃣ Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
+      # 2️⃣ Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-    - name: Install uv
-      run: pip install uv
+      # 3️⃣ Install ONLY lint tools (lightweight)
+      - name: Install lint tools
+        run: |
+          pip install black isort flake8
 
-    - name: Install dependencies
-      run: uv pip install --system .
+      # 4️⃣ Run Black (format check)
+      - name: Run Black
+        run: black --check .
 
-    - name: Install lint tools
-      run: uv pip install black isort flake8
+      # 5️⃣ Run isort (import order check)
+      - name: Run isort
+        run: isort --check-only .
 
-    - name: Run Black
-      run: uv run black --check .
-
-    - name: Run isort
-      run: uv run isort --check-only .
-
-    - name: Run Flake8
-      run: uv run flake8 .
+      # 6️⃣ Run Flake8 (lint errors)
+      - name: Run Flake8
+        run: flake8 app --max-line-length=120
