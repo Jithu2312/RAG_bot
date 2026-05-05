@@ -2,3 +2,4 @@ fastapi
 uvicorn
 pydantic
 flake8
+rank-bm25
