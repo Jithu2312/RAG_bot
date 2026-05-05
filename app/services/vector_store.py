@@ -28,7 +28,6 @@ def build_faiss_index(chunks):
 
 
 def search_faiss(query, top_k=5):
-    global faiss_index, metadata_store
 
     query_embedding = model.encode([query])
     query_embedding = np.array(query_embedding).astype("float32")
