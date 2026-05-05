@@ -1,10 +1,10 @@
-name: RepoLens CI
+name: RepoLens CI (Lightweight)
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: ["dev"]
   pull_request:
-    branches: [ "dev" ]
+    branches: ["dev"]
 
 jobs:
   build:
@@ -19,17 +19,24 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install uv
-        run: pip install uv
-
-      - name: Install dependencies
-        run: uv pip install -r requirements.txt
-
-      - name: Lint check (basic)
+      - name: Install basic tools
         run: |
           pip install flake8
-          flake8 app --max-line-length=120
 
+      # -----------------------------
+      # ✅ SYNTAX CHECK
+      # -----------------------------
+      - name: Syntax check
+        run: python -m py_compile $(git ls-files '*.py')
+
+      # -----------------------------
+      # ✅ LINT CHECK
+      # -----------------------------
+      - name: Lint check
+        run: flake8 app --max-line-length=120
+
+      # -----------------------------
+      # ✅ IMPORT CHECK
+      # -----------------------------
       - name: Import check
-        run: |
-          python -c "import app.main"
+        run: python -c "import app.main"
