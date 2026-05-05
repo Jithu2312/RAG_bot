@@ -26,10 +26,6 @@ def search_bm25(query, top_k=5):
 
     scores = bm25.get_scores(tokenized_query)
 
-    top_indices = sorted(
-        range(len(scores)),
-        key=lambda i: scores[i],
-        reverse=True
-    )[:top_k]
+    top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
 
     return [documents[i] for i in top_indices]

@@ -1,5 +1,5 @@
 import re
-from typing import List, Dict
+from typing import Dict, List
 
 
 def detect_language(file_path: str) -> str:
@@ -16,6 +16,7 @@ def detect_language(file_path: str) -> str:
 
 
 # ----------- FUNCTION SPLITTER -----------
+
 
 def split_python_functions(content: str):
     pattern = r"(def\s+\w+\(.*?\):[\s\S]*?)(?=\ndef\s|\Z)"
@@ -38,6 +39,7 @@ def split_java_methods(content: str):
 
 
 # ----------- MAIN CHUNKER -----------
+
 
 def chunk_code(files_data: List[Dict]):
 
@@ -68,10 +70,6 @@ def chunk_code(files_data: List[Dict]):
             functions = [content]
 
         for func in functions:
-            chunks.append({
-                "text": func,
-                "file_path": file_path,
-                "language": language
-            })
+            chunks.append({"text": func, "file_path": file_path, "language": language})
 
     return chunks

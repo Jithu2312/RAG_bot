@@ -1,13 +1,12 @@
 from fastapi import APIRouter
 
-from app.services.vector_store import build_faiss_index, search_faiss
-from app.services.code_chunker import chunk_code
-from app.services.repo_ingestion import clone_repo, read_code_files
+from app.models.schemas import RepoIngestRequest, RepoQueryRequest
 from app.services.bm25_store import build_bm25_index, search_bm25
+from app.services.code_chunker import chunk_code
 from app.services.llm_service import generate_answer
 from app.services.memory import add_message, get_memory
-
-from app.models.schemas import RepoQueryRequest, RepoIngestRequest
+from app.services.repo_ingestion import clone_repo, read_code_files
+from app.services.vector_store import build_faiss_index, search_faiss
 
 router = APIRouter()
 
@@ -29,7 +28,7 @@ def ingest_repo(request: RepoIngestRequest):
         "message": "Repo indexed successfully",
         "num_files": len(files),
         "num_chunks": len(chunks),
-        "indexed": num_indexed
+        "indexed": num_indexed,
     }
 
 
@@ -47,16 +46,10 @@ def query_repo(request: RepoQueryRequest):
     retrieved_chunks = faiss_results + bm25_results
 
     # 3. Generate answer
-    answer = generate_answer(
-        question=request.question,
-        contexts=retrieved_chunks,
-        history=history
-    )
+    answer = generate_answer(question=request.question, contexts=retrieved_chunks, history=history)
 
     # 4. Store memory
     add_message(request.session_id, "user", request.question)
     add_message(request.session_id, "assistant", answer)
 
-    return {
-        "answer": answer
-    }
+    return {"answer": answer}

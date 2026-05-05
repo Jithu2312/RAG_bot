@@ -1,10 +1,9 @@
 from pydantic import BaseModel
-from typing import Optional
 
 
 class QueryRequest(BaseModel):
     query: str
-    session_id: str   # 👈 REQUIRED for memory
+    session_id: str  # 👈 REQUIRED for memory
 
 
 class QueryResponse(BaseModel):

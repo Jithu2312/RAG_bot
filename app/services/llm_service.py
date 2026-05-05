@@ -1,6 +1,6 @@
 from google import genai
-import os
-from config import GEMINI_API_KEY 
+
+from config import GEMINI_API_KEY
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -39,9 +39,6 @@ Context:
 {context_text}
 """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash-lite",
-        contents=prompt
-    )
+    response = client.models.generate_content(model="gemini-2.5-flash-lite", contents=prompt)
 
     return response.text

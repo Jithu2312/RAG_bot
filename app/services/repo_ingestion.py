@@ -1,8 +1,6 @@
 import os
 import shutil
 import subprocess
-from pathlib import Path
-
 
 BASE_DIR = "repos"
 
@@ -20,10 +18,7 @@ def clone_repo(repo_url: str) -> str:
 
     os.makedirs(BASE_DIR, exist_ok=True)
 
-    subprocess.run(
-        ["git", "clone", repo_url, repo_path],
-        check=True
-    )
+    subprocess.run(["git", "clone", repo_url, repo_path], check=True)
 
     return repo_path
 
@@ -47,10 +42,7 @@ def read_code_files(repo_path: str):
                     with open(full_path, "r", encoding="utf-8") as f:
                         content = f.read()
 
-                    files_data.append({
-                        "file_path": full_path,
-                        "content": content
-                    })
+                    files_data.append({"file_path": full_path, "content": content})
 
                 except Exception:
                     continue
